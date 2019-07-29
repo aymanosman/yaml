@@ -45,7 +45,7 @@
     [allow-undefined? boolean?])
    [check-data? (->m boolean?)]
    [get-data (->m (or/c yaml? void?))]
-   [get-single-data (->m (or/c yaml? #f))]
+   [get-single-data (->m any)]
    [construct-scalar (scalar-node? . ->m . string?)]
    [construct-sequence (sequence-node? . ->m . (listof yaml?))]
    [construct-mapping (mapping-node? . ->m . (hash/c yaml? yaml?))]
@@ -173,12 +173,11 @@
          (node-start node)))
       (flatten-mapping! node)
       (let ([mapping (make-hash)])
-        (for ([kv (mapping-node-value node)])
+        (for/list ([kv (mapping-node-value node)])
           (match-let ([(cons key-node value-node) kv])
             (let* ([key (construct-object key-node)]
                    [value (construct-object value-node)])
-              (hash-set! mapping key value))))
-        mapping))
+              (cons key value))))))
     
     (define (flatten-mapping! node)
       (let ([merge '()] [index 0])
